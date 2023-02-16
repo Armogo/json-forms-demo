@@ -1,58 +1,908 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
-  </div>
+  <json-forms
+    :data="data"
+    :schema="schema"
+    :uischema="uischema"
+    :renderers="renderers"
+    :readonly="readOnlyToggle"
+    @change="onChange"
+  />
 </template>
 
-<script>
-export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
-  }
-}
-</script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
+<style >
+body {
+  padding-top: 2em;
 }
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
+
+.v-window {
+  width: 90vw;
 }
 </style>
+
+<script>
+import { JsonForms } from "@jsonforms/vue2";
+import { vuetifyRenderers } from "@jsonforms/vue2-vuetify";
+
+const renderers = [
+  ...vuetifyRenderers,
+  // here you can add custom renderers
+];
+
+export default {
+  name: "app",
+  components: {
+    JsonForms,
+  },
+  data() {
+    return {
+      readOnlyToggle: false,
+      renderers: Object.freeze(renderers),
+      data: {},
+      schema: {
+        type: "object",
+        properties: {
+          alternateIdentifiers: {
+            description: "Alternate identifiers for the dataset.",
+            type: "array",
+            items: {
+              $ref: "#/definitions/AlternateIdentifierInfo",
+            },
+          },
+          dates: {
+            description:
+              "Relevant dates for the datasets, a date must be added, e.g. creation date or last modification date should be added.",
+            type: "array",
+            items: {
+              $ref: "#/definitions/DateInfo",
+            },
+          },
+          storedIn: {
+            description: "The data repository hosting the dataset.",
+            $ref: "#/definitions/DataRepository",
+          },
+          types: {
+            description:
+              "A term, ideally from a controlled terminology, identifying the dataset type or nature of the data, placing it in a typology",
+            type: "array",
+            items: {
+              $ref: "#/definitions/DataType",
+            },
+          },
+          privacy: {
+            description:
+              "A qualifier to describe the data protection applied to the dataset. This is relevant for clinical data.",
+            type: "string",
+          },
+          primaryPublications: {
+            description:
+              "The primary publication(s) associated with the dataset, usually describing how the dataset was produced.",
+            type: "array",
+            items: {
+              $ref: "#/definitions/Publication",
+            },
+          },
+          creators: {
+            description:
+              "The person(s) or organization(s) which contributed to the creation of the dataset.",
+            type: "array",
+            items: {
+              anyOf: [
+                { $ref: "#/definitions/Person" },
+                { $ref: "#/definitions/Organization" },
+              ],
+            },
+          },
+          licenses: {
+            description: "The terms of use of the dataset.",
+            type: "array",
+            items: {
+              $ref: "#/definitions/License",
+            },
+          },
+          isAbout: {
+            description:
+              "Different entities (biological entity, taxonomic information, disease, molecular entity, anatomical part, treatment) associated with this dataset.",
+            type: "array",
+            items: {
+              anyOf: [
+                { $ref: "#/definitions/MolecularEntity" },
+                { $ref: "#/definitions/Material" },
+              ],
+            },
+          },
+          version: {
+            description: "A release point for the dataset when applicable.",
+            type: "string",
+          },
+          extraProperties: {
+            description:
+              "Extra properties that do not fit in the previous specified attributes. ",
+            type: "array",
+            items: {
+              $ref: "#/definitions/CategoryValuesPair",
+            },
+          },
+        },
+        additionalProperties: false,
+        definitions: {
+          AlternateIdentifierInfo: {
+            type: "object",
+            properties: {
+              identifier: {
+                description:
+                  "An identifier or identifiers other than the primary Identifier applied to the resource being registered. (definition from DataCite)",
+                type: "string",
+              },
+              identifierSource: {
+                description:
+                  "The identifier source represents information about the organisation/namespace responsible for minting the identifiers. It must be provided if the identifier is provided.",
+                type: "string",
+              },
+            },
+            additionalProperties: false,
+          },
+          Annotation: {
+            type: "object",
+            properties: {
+              value: {
+                description:
+                  "The value of the annotation - it can be a string or a number (for coded values).",
+                anyOf: [{ type: "string" }, { type: "number" }],
+              },
+              valueIRI: {
+                description:
+                  "The IRI of a concept or ontology term associated with the value. It can also be an empty string",
+                anyOf: [
+                  {
+                    type: "string",
+                    minLength: 1,
+                    maxLength: 65536,
+                    format: "uri",
+                  },
+                  { type: "string", maxLength: 0 },
+                ],
+              },
+            },
+            additionalProperties: false,
+          },
+          DateInfo: {
+            type: "object",
+            properties: {
+              date: {
+                description: "A date following the ISO8601 standard.",
+                type: "string",
+                format: "date-time",
+              },
+              type: {
+                description:
+                  "The type of date, used to specify the process which is being timestamped by the date attribute value, ideally comes from a controlled terminology.",
+                $ref: "#/definitions/Annotation",
+              },
+            },
+            required: ["date", "type"],
+            additionalProperties: false,
+          },
+          Organization: {
+            type: "object",
+            properties: {
+              name: {
+                description: "The name of the organization.",
+                type: "string",
+              },
+              abbreviation: {
+                description:
+                  "The shortname, abbreviation associated to the organization.",
+                type: "string",
+              },
+              roles: {
+                description:
+                  "The roles of the organization (ideally from a controlled vocabulary/ontology).",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/Annotation",
+                },
+              },
+            },
+            required: ["name"],
+            additionalProperties: false,
+          },
+          Person: {
+            type: "object",
+            properties: {
+              firstName: {
+                description: "The given name of the person.",
+                type: "string",
+              },
+              middleInitial: {
+                description: "The first letter of the person's middle name.",
+                type: "string",
+              },
+              lastName: {
+                description: "The person's family name.",
+                type: "string",
+              },
+              email: {
+                description: "An electronic mail address for the person.",
+                type: "string",
+                format: "email",
+              },
+              affiliations: {
+                description:
+                  "The organizations to which the person is associated with.",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/Organization",
+                },
+              },
+              roles: {
+                description:
+                  "The roles assumed by a person, ideally from a controlled vocabulary/ontology.",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/Annotation",
+                },
+              },
+            },
+            additionalProperties: false,
+          },
+          Access: {
+            type: "object",
+            properties: {
+              landingPage: {
+                description:
+                  "A web page that contains information about the associated dataset or other research object and a direct link to the object itself.",
+                minLength: 1,
+                maxLength: 65536,
+                format: "uri",
+                type: "string",
+              },
+              accessURL: {
+                description:
+                  "A URL from which the resource (dataset or other research object) can be retrieved, i.e. a direct link to the object itself.",
+                minLength: 1,
+                maxLength: 65536,
+                format: "uri",
+                type: "string",
+              },
+              authorizations: {
+                description:
+                  "Types of verification that accessing the resource is allowed. Authorization occurs before successful authentication and refers to the process of obtaining approval to use a data set. Ideally specified from a controlled vocabulary or ontology.",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/Annotation",
+                },
+              },
+              authentications: {
+                description:
+                  "Types of verification of the credentials for accessing the resource, it is the identification process at the time of access. ideally specified from a controlled vocabulary or ontology.",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/Annotation",
+                },
+              },
+            },
+            required: ["landingPage"],
+            additionalProperties: false,
+          },
+          DataRepository: {
+            type: "object",
+            properties: {
+              name: {
+                description: "The name of the data repository.",
+                type: "string",
+              },
+              description: {
+                description:
+                  "A textual narrative comprised of one or more statements describing the data repository.",
+                type: "string",
+              },
+              scopes: {
+                description:
+                  "Information about the nature of the datasets in the repository, ideally from a controlled vocabulary or ontology (e.g. transcription profile, sequence reads, molecular structure, image, DNA sequence, NMR spectra).",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/Annotation",
+                },
+              },
+              types: {
+                description:
+                  "A descriptor (ideally from a controlled vocabulary) providing information about the type of repository, such as primary resource or aggregator.",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/Annotation",
+                },
+              },
+              publishers: {
+                description:
+                  "The person(s) or organization(s) responsible for the repository and its availability.",
+                type: "array",
+                items: {
+                  anyOf: [
+                    { $ref: "#/definitions/Person" },
+                    { $ref: "#/definitions/Organization" },
+                  ],
+                },
+              },
+              access: {
+                description:
+                  "The information about access modality for the data repository.",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/Access",
+                },
+              },
+            },
+            required: ["name"],
+            additionalProperties: false,
+          },
+          DataType: {
+            type: "object",
+            properties: {
+              information: {
+                description:
+                  "The measurements or facts that the data is about.",
+                allOf: [{ $ref: "#/definitions/Annotation" }],
+              },
+              method: {
+                description:
+                  "The procedure or technology used to generate the information.",
+                allOf: [{ $ref: "#/definitions/Annotation" }],
+              },
+              platform: {
+                description:
+                  "The set of instruments, software and reagents that are needed to generated the data.",
+                allOf: [{ $ref: "#/definitions/Annotation" }],
+              },
+              instrument: {
+                description: "The specific device used to generate the data.",
+                allOf: [{ $ref: "#/definitions/Annotation" }],
+              },
+            },
+          },
+          Publication: {
+            type: "object",
+            properties: {
+              title: {
+                description:
+                  "The name of the publication, usually one sentence or short description of the publication.",
+                type: "string",
+              },
+              type: {
+                description:
+                  "Publication type, ideally delegated to an external vocabulary/resource.",
+                allOf: [{ $ref: "#/definitions/Annotation" }],
+              },
+              publicationVenue: {
+                description:
+                  "The name of the publication venue where the document is published if applicable.",
+                type: "string",
+              },
+              dates: {
+                description:
+                  "Relevant dates, the date of the publication must be provided.",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/DateInfo",
+                },
+              },
+              authors: {
+                description:
+                  "The person(s) and/or organisation(s) responsible for the publication.",
+                minItems: 1,
+                type: "array",
+                items: {
+                  anyOf: [
+                    { $ref: "#/definitions/Person" },
+                    { $ref: "#/definitions/Organization" },
+                  ],
+                },
+              },
+            },
+            additionalProperties: false,
+          },
+          License: {
+            type: "object",
+            properties: {
+              name: {
+                description: "The name of the license.",
+                type: "string",
+              },
+              version: {
+                description: "The version of the license.",
+                type: "string",
+              },
+              dates: {
+                description:
+                  "Relevant dates, such as the date of the license was issued, may be provided.",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/DateInfo",
+                },
+              },
+              licensingAuthority: {
+                description:
+                  "The person(s) or organization(s) responsible for granting access to the data by approving the license.",
+                type: "array",
+                items: {
+                  anyOf: [
+                    { $ref: "#/definitions/Person" },
+                    { $ref: "#/definitions/Organization" },
+                  ],
+                },
+              },
+              creators: {
+                description:
+                  "The person(s) or organization(s) responsible for writing the license.",
+                type: "array",
+                items: {
+                  anyOf: [
+                    { $ref: "#/definitions/Person" },
+                    { $ref: "#/definitions/Organization" },
+                  ],
+                },
+              },
+              consentInformation: {
+                description:
+                  "Types of consent given by study participant extracted from the terms of use documents. Ideally specified from a controlled vocabulary or ontology, such as GA4GH Data Use Ontology (DUO: http://www.obofoundry.org/ontology/duo.html) or ADA-M matrix (https://github.com/ga4gh/ADA-M).",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/Annotation",
+                },
+              },
+              dataUseConditions: {
+                description:
+                  "Types of data use conditions extracted from the license documents. Data Use Conditions may refer to restrictions, prohibition, research topics as granted by the dataset, dimension, software license. Ideally specified from a controlled vocabulary or ontology, such as GA4GH Data Use Ontology (DUO: http://www.obofoundry.org/ontology/duo.html) or ADA-M matrix (https://github.com/ga4gh/ADA-M).",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/Annotation",
+                },
+              },
+            },
+            required: ["name"],
+            additionalProperties: false,
+          },
+          CategoryValuesPair: {
+            type: "object",
+            properties: {
+              category: {
+                description:
+                  "A characteristic or property about the entity this object is associated with.",
+                type: "string",
+              },
+              categoryIRI: {
+                description:
+                  "The IRI corresponding to the category, if associated with an ontology term.",
+                anyOf: [
+                  {
+                    type: "string",
+                    minLength: 1,
+                    maxLength: 65536,
+                    format: "uri",
+                  },
+                  { type: "string", maxLength: 0 },
+                ],
+              },
+              values: {
+                description:
+                  "A set of (annotated) values associated with the category.",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/Annotation",
+                },
+              },
+            },
+            additionalProperties: false,
+          },
+          TaxonomicInfo: {
+            type: "object",
+            properties: {
+              name: {
+                title: "Name",
+                description: "The scientific name of an organism.",
+                type: "string",
+              },
+            },
+            required: ["name"],
+            additionalProperties: false,
+          },
+          Strand: {
+            description: "An enumeration.",
+            enum: ["+", "-", "."],
+          },
+          GenomeLocation: {
+            type: "object",
+            properties: {
+              assembly: {
+                description:
+                  "The assembly on which the position and chromosome are based.",
+                type: "string",
+              },
+              startPosition: {
+                description: "the start position of the location.",
+                type: "number",
+              },
+              endPosition: {
+                description: "the end position of the location.",
+                type: "number",
+              },
+              chromosome: {
+                description:
+                  "the chromosome of the genomic feature. Note: whatever loaded here, will be used in JBrowse.",
+                type: "string",
+              },
+              strand: {
+                description: "strand of the genome location.",
+                allOf: [{ $ref: "#/definitions/Strand" }],
+              },
+            },
+            required: ["assembly", "chromosome"],
+          },
+          AnatomicalPart: {
+            type: "object",
+            properties: {
+              name: {
+                description:
+                  "The name of the anatomical entity or anatomical part.",
+                type: "string",
+              },
+            },
+            required: ["name"],
+            additionalProperties: false,
+          },
+          Disease: {
+            type: "object",
+            properties: {
+              name: {
+                description: "The name of the disease.",
+                type: "string",
+              },
+              dates: {
+                description:
+                  "Relevant dates, such as the diagnosis date of the disease, may be provided.",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/DateInfo",
+                },
+              },
+              diseaseStatus: {
+                description:
+                  "A value (and ideally also an ontology annotation provided as a valueIRI) for the disease status.",
+                allOf: [{ $ref: "#/definitions/Annotation" }],
+              },
+            },
+            required: ["name"],
+            additionalProperties: false,
+          },
+          BiologicalEntity: {
+            type: "object",
+            properties: {
+              name: {
+                description: "The name of the biological entity.",
+                type: "string",
+              },
+            },
+            required: ["name"],
+            additionalProperties: false,
+          },
+          Material: {
+            type: "object",
+            properties: {
+              name: {
+                description: "The name of the material.",
+                type: "string",
+              },
+              description: {
+                description:
+                  "A textual narrative comprised of one or more statements describing the material.",
+                type: "string",
+              },
+              derivesFrom: {
+                description: "A material from which this material originated.",
+                type: "array",
+                items: {
+                  anyOf: [
+                    { $ref: "#/definitions/Material" },
+                    { $ref: "#/definitions/AnatomicalPart" },
+                  ],
+                },
+              },
+              bearerOfDisease: {
+                description:
+                  "The pathology affecting the material used in the study or referred to in the dataset (ideally from a controlled vocabulary/ontology).",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/Disease",
+                },
+              },
+              taxonomy: {
+                description:
+                  "The taxonomic information for this material (ideally specified from a controlled vocabulary/ontology).",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/TaxonomicInfo",
+                },
+              },
+              involvedInBiologicalEntity: {
+                description:
+                  "A biological process (ideally specified from a controlled vocabulary/ontology) in which the material is involved.",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/BiologicalEntity",
+                },
+              },
+              roles: {
+                description: "The roles played by a material.",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/Annotation",
+                },
+              },
+            },
+            required: ["name"],
+            additionalProperties: false,
+          },
+          MolecularEntity: {
+            type: "object",
+            properties: {
+              name: {
+                description: "The name of the molecular entity.",
+                type: "string",
+              },
+              description: {
+                description:
+                  "A textual narrative comprised of one or more statements describing the molecular entity.",
+                type: "string",
+              },
+              taxonomy: {
+                description:
+                  "The taxonomic information for this material (ideally specified from a controlled vocabulary/ontology).",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/TaxonomicInfo",
+                },
+              },
+              genomeLocations: {
+                description:
+                  "The set of location information of a genetic element in a genome.",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/GenomeLocation",
+                },
+              },
+              structure: {
+                description:
+                  "The primary sequence of the molecular entity (e.g. inchi code;DNA sequence in FASTA format)",
+                type: "string",
+              },
+              roles: {
+                description: "The roles played by the molecular entity.",
+                type: "array",
+                items: {
+                  $ref: "#/definitions/Annotation",
+                },
+              },
+            },
+            required: ["name"],
+            additionalProperties: false,
+          },
+        },
+      },
+      uischema: {
+        type: "Categorization",
+        elements: [
+          {
+            type: "Category",
+            label: "Alternate identifiers for the dataset",
+            elements: [
+              {
+                type: "VerticalLayout",
+                elements: [
+                  {
+                    type: "Control",
+                    scope: "#/properties/alternateIdentifiers",
+                    options: {
+                      details: {
+                        type: "HorizontalLayout",
+                        elements: [
+                          { type: "Control", scope: "#/properties/identifier" },
+                          {
+                            type: "Control",
+                            scope: "#/properties/identifierSource",
+                          },
+                        ],
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: "Category",
+            label: "Relevant dates for the datasets",
+            elements: [
+              {
+                type: "VerticalLayout",
+                elements: [
+                  {
+                    type: "Control",
+                    scope: "#/properties/dates",
+                    options: {
+                      details: "GENERATED",
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: "Category",
+            label: "The data repository hosting the dataset",
+            elements: [
+              {
+                type: "VerticalLayout",
+                elements: [
+                  {
+                    type: "Control",
+                    scope: "#/properties/storedIn",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: "Category",
+            label: "A term identifying the dataset type or nature of the data",
+            elements: [
+              {
+                type: "VerticalLayout",
+                elements: [
+                  {
+                    type: "Control",
+                    scope: "#/properties/types",
+                    options: {
+                      details: {
+                        type: "HorizontalLayout",
+                        elements: [
+                          {
+                            type: "Control",
+                            scope: "#/properties/information",
+                          },
+                          { type: "Control", scope: "#/properties/method" },
+                          { type: "Control", scope: "#/properties/platform" },
+                          { type: "Control", scope: "#/properties/instrument" },
+                        ],
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: "Category",
+            label: "Primary publication(s) associated with the dataset",
+            elements: [
+              {
+                type: "VerticalLayout",
+                elements: [
+                  {
+                    type: "Control",
+                    scope: "#/properties/primaryPublications",
+                    options: {
+                      details: "GENERATED",
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: "Category",
+            label:
+              "Person(s) or organization(s) which contributed to the creation of the dataset",
+            elements: [
+              {
+                type: "VerticalLayout",
+                elements: [
+                  {
+                    type: "Control",
+                    scope: "#/properties/creators",
+                    options: {
+                      details: "GENERATED",
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: "Category",
+            label: "The terms of use of the dataset",
+            elements: [
+              {
+                type: "VerticalLayout",
+                elements: [
+                  {
+                    type: "Control",
+                    scope: "#/properties/licenses",
+                    options: {
+                      details: "GENERATED",
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: "Category",
+            label: "Different entities associated with this dataset",
+            elements: [
+              {
+                type: "VerticalLayout",
+                elements: [
+                  {
+                    type: "Control",
+                    scope: "#/properties/isAbout",
+                    options: {
+                      details: "GENERATED",
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: "Category",
+            label: "Extra properties",
+            elements: [
+              {
+                type: "VerticalLayout",
+                elements: [
+                  {
+                    type: "Control",
+                    scope: "#/properties/extraProperties",
+                    options: {
+                      details: "GENERATED",
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: "Category",
+            label: "A release point for the dataset when applicable",
+            elements: [
+              {
+                type: "Control",
+                scope: "#/properties/version",
+              },
+            ],
+          },
+          {
+            type: "Category",
+            label:
+              "Data protection applied to the dataset relevant for clinical data.",
+            elements: [
+              {
+                type: "Control",
+                scope: "#/properties/privacy",
+              },
+            ],
+          },
+        ],
+      },
+    };
+  },
+
+  methods: {
+    onChange(event) {
+      this.data = event.data;
+    },
+  },
+};
+</script>
+
+
