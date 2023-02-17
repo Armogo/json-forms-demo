@@ -6,4 +6,5 @@ module.exports = defineConfig({
     "@jsonforms/vue2",
     "@jsonforms/vue2-vuetify",
   ],
+  publicPath: process.env.NODE_ENV === "production" ? "/json-forms-demo/" : "/",
 });
