@@ -10,11 +10,8 @@
 </template>
 
 
-<style >
-body {
-  padding-top: 2em;
-}
-
+<style lang="scss">
+/** JSON-FORMS style */
 .v-window {
   width: 90vw;
 }
@@ -30,13 +27,21 @@ const renderers = [
 ];
 
 export default {
-  name: "app",
+  name: "HelloWorld",
+
   components: {
     JsonForms,
   },
+
+  props: {
+    readOnlyToggle: {
+      type: Boolean,
+      default: false,
+    },
+  },
+
   data() {
     return {
-      readOnlyToggle: false,
       renderers: Object.freeze(renderers),
       data: {},
       schema: {
