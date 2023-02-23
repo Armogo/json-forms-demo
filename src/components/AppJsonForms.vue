@@ -1,27 +1,18 @@
 <template>
   <json-forms
-    :data="data"
+    class="json-form"
     :schema="schema"
     :uischema="uischema"
+    :data="data"
     :renderers="renderers"
     :readonly="readOnlyToggle"
     @change="onChange"
   />
 </template>
 
-
-<style lang="scss">
-/** JSON-FORMS style */
-.v-window {
-  width: 90vw;
-}
-</style>
-
 <script>
-import { JsonForms } from "@jsonforms/vue2";
-import { vuetifyRenderers } from "@jsonforms/vue2-vuetify";
-import schema from "@/assets/json-files/drs_metadata_schema.json"
-import uischema from "@/assets/json-files/drs_metadata_uischema.json"
+import { JsonForms } from '@jsonforms/vue2';
+import { vuetifyRenderers } from '@jsonforms/vue2-vuetify';
 
 const renderers = [
   ...vuetifyRenderers,
@@ -29,13 +20,16 @@ const renderers = [
 ];
 
 export default {
-  name: "HelloWorld",
+  name: 'AppJsonForms',
 
   components: {
     JsonForms,
   },
 
   props: {
+    schema: { type: Object, default: () => ({}) },
+    uischema: { type: Object, default: () => ({}) },
+    data: { type: Object, default: () => ({}) },
     readOnlyToggle: {
       type: Boolean,
       default: false,
@@ -45,18 +39,22 @@ export default {
   data() {
     return {
       renderers: Object.freeze(renderers),
-      data: {},
-      schema: schema,
-      uischema: uischema,
     };
   },
 
   methods: {
-    onChange(event) {
-      this.data = event.data;
+    onChange($event) {
+      this.$emit('change-data', $event.data);
     },
   },
 };
 </script>
 
-
+<style lang="scss">
+/** JSON-FORMS style */
+.json-form {
+  .v-item-group {
+    width: 90vw;
+  }
+}
+</style>
