@@ -6,13 +6,15 @@
     :data="data"
     :renderers="renderers"
     :readonly="readOnlyToggle"
+    :ajv="handleDefaultsAjv"
     @change="onChange"
   />
 </template>
 
 <script>
-import { JsonForms } from '@jsonforms/vue2';
-import { vuetifyRenderers } from '@jsonforms/vue2-vuetify';
+import { JsonForms } from "@jsonforms/vue2";
+import { vuetifyRenderers } from "@jsonforms/vue2-vuetify";
+import { createAjv } from "@jsonforms/core";
 
 const renderers = [
   ...vuetifyRenderers,
@@ -20,7 +22,7 @@ const renderers = [
 ];
 
 export default {
-  name: 'AppJsonForms',
+  name: "AppJsonForms",
 
   components: {
     JsonForms,
@@ -39,12 +41,14 @@ export default {
   data() {
     return {
       renderers: Object.freeze(renderers),
+      /** 讀取 schema default 欄位資料 */
+      handleDefaultsAjv: createAjv({ useDefaults: true }),
     };
   },
 
   methods: {
     onChange($event) {
-      this.$emit('change-data', $event.data);
+      this.$emit("change-data", $event.data);
     },
   },
 };
